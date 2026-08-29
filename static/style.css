@@ -20,16 +20,33 @@
   --color-red-500: #d1453d;
   --color-red-600: #b23631;
 
+  --color-yellow-50: #fff1dc;
+  --color-yellow-400: #e8a64b;
+  --color-yellow-500: #d9822b;
+  --color-yellow-600: #b9671b;
+
+  --color-gray-50: #eef0f3;
+  --color-gray-500: #6b7480;
+  --color-gray-600: #565e69;
+
   /* method-class accent colors — one per method_class_name value, cycled in
      order of first appearance. Add/reorder freely; unused ones are harmless. */
-  --class-color-1: #0f9488; /* teal */
-  --class-color-2: #7c3aed; /* purple */
-  --class-color-3: #d97706; /* amber */
-  --class-color-4: #16a34a; /* green */
-  --class-color-5: #db2777; /* pink */
-  --class-color-6: #4f46e5; /* indigo */
-  --class-color-7: #92400e; /* brown */
-  --class-color-8: #0891b2; /* cyan */
+  --class-color-1: rgb(92, 200, 208);
+  /* teal */
+  --class-color-2: #7c3aed;
+  /* purple */
+  --class-color-3: #d97706;
+  /* amber */
+  --class-color-4: #2ac463;
+  /* green */
+  --class-color-5: #d05e91;
+  /* pink */
+  --class-color-6: #4f46e5;
+  /* indigo */
+  --class-color-7: #92400e;
+  /* brown */
+  --class-color-8: #0891b2;
+  /* cyan */
 
   --color-text: rgba(0, 0, 0, 0.8);
   --color-text-muted: rgba(0, 0, 0, 0.55);
@@ -345,13 +362,23 @@ button {
 }
 
 .card__badge--partial,
-.modal__badge--partial {
+.modal__badge.modal__badge--partial {
   color: var(--color-red-600);
   background: var(--color-red-50);
 }
 
 .card__badge--partial::before {
   background: var(--color-red-500);
+}
+
+.card__badge--not,
+.modal__badge.modal__badge--not {
+  color: var(--color-gray-600);
+  background: var(--color-gray-50);
+}
+
+.card__badge--not::before {
+  background: var(--color-gray-500);
 }
 
 .card__title {
@@ -665,6 +692,7 @@ button {
   .page {
     padding: var(--space-4);
   }
+
   .modal {
     padding: var(--space-4);
   }

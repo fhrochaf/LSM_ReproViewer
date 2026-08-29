@@ -1,8 +1,9 @@
 """Build the static ReproChecker results viewer (index.html).
 
 Reads the per-paper assessment reports produced by the reproducibility crew
-and the Scopus export metadata, keeps only papers assessed as REPRODUCIBLE or
-PARTIALLY_REPRODUCIBLE, and renders them into a single static HTML page.
+and the Scopus export metadata, keeps papers assessed as REPRODUCIBLE,
+PARTIALLY_REPRODUCIBLE, or NOT_REPRODUCIBLE, and renders them into a single
+static HTML page.
 
 Usage:
     uv sync --group viewer   # one-time, installs jinja2 for building only
@@ -29,7 +30,7 @@ VIEWER_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = VIEWER_DIR / "templates"
 OUTPUT_HTML = VIEWER_DIR / "index.html"
 
-TARGET_STATUSES = ("REPRODUCIBLE", "PARTIALLY_REPRODUCIBLE")
+TARGET_STATUSES = ("REPRODUCIBLE", "PARTIALLY_REPRODUCIBLE", "NOT_REPRODUCIBLE")
 STATUS_SORT_RANK = {status: i for i, status in enumerate(TARGET_STATUSES)}
 
 
@@ -109,7 +110,7 @@ def build_paper_record(report_path: Path, meta_row: pd.Series) -> dict:
     }
 
 
-def collect_reproducible_papers() -> list[dict]:
+def collect_assessed_papers() -> list[dict]:
     meta = load_metadata()
     papers = []
     for report_path in sorted(REPORTS_DIR.glob("*.json")):
@@ -161,14 +162,16 @@ def render(papers: list[dict]) -> str:
 
 
 def main() -> None:
-    papers = collect_reproducible_papers()
+    papers = collect_assessed_papers()
     html = render(papers)
     OUTPUT_HTML.write_text(html, encoding="utf-8")
     reproducible_count = sum(1 for p in papers if p["status"] == "REPRODUCIBLE")
     partial_count = sum(1 for p in papers if p["status"] == "PARTIALLY_REPRODUCIBLE")
+    not_reproducible_count = sum(1 for p in papers if p["status"] == "NOT_REPRODUCIBLE")
     print(
         f"Wrote {OUTPUT_HTML} ({reproducible_count} reproducible, "
-        f"{partial_count} partially reproducible)"
+        f"{partial_count} partially reproducible, "
+        f"{not_reproducible_count} not reproducible)"
     )
 
 

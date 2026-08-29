@@ -7,6 +7,7 @@
   const grid = document.getElementById("card-grid");
   const searchInput = document.getElementById("search-input");
   const resultCount = document.getElementById("result-count");
+  const statusFilterRow = document.getElementById("status-filter");
   const classFilterRow = document.getElementById("class-filter");
   const backdrop = document.getElementById("modal-backdrop");
   const modalBody = document.getElementById("modal-body");
@@ -14,6 +15,28 @@
 
   const CLASS_COLOR_SLOTS = 8;
   const activeClasses = new Set();
+  const activeStatuses = new Set();
+
+  // Order here drives both the filter-chip order and card sort tie-breaking
+  // elsewhere; keep it aligned with build.py's STATUS_SORT_RANK.
+  const STATUSES = [
+    { value: "REPRODUCIBLE", label: "Reproducible", badgeClass: "", color: "var(--color-blue-500)" },
+    {
+      value: "PARTIALLY_REPRODUCIBLE",
+      label: "Partially reproducible",
+      badgeClass: " card__badge--partial",
+      modalBadgeClass: " modal__badge--partial",
+      color: "var(--color-yellow-500)",
+    },
+    {
+      value: "NOT_REPRODUCIBLE",
+      label: "Not reproducible",
+      badgeClass: " card__badge--not",
+      modalBadgeClass: " modal__badge--not",
+      color: "var(--color-gray-500)",
+    },
+  ];
+  const statusByValue = Object.fromEntries(STATUSES.map((s) => [s.value, s]));
 
   function escapeHtml(value) {
     if (value === null || value === undefined) return "";
@@ -94,19 +117,15 @@
     return status.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
   }
 
-  function isPartial(paper) {
-    return paper.status === "PARTIALLY_REPRODUCIBLE";
-  }
-
   function renderCard(paper) {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "card";
     el.setAttribute("data-id", paper.id);
 
-    const partial = isPartial(paper);
-    const badgeClass = `card__badge${partial ? " card__badge--partial" : ""}`;
-    const badgeText = partial ? "Partially reproducible" : "Reproducible";
+    const statusMeta = statusByValue[paper.status];
+    const badgeClass = `card__badge${statusMeta?.badgeClass || ""}`;
+    const badgeText = statusMeta?.label || "Unknown";
     const methodClass = paperMethodClass(paper);
     const classDot = methodClass
       ? `<div class="card__classdots" title="${escapeHtml(methodClass)}">
@@ -131,9 +150,9 @@
   }
 
   function openModal(paper) {
-    const partial = isPartial(paper);
-    const badgeClass = `modal__badge${partial ? " modal__badge--partial" : ""}`;
-    const badgeText = partial ? "Partially reproducible" : "Reproducible";
+    const statusMeta = statusByValue[paper.status];
+    const badgeClass = `modal__badge${statusMeta?.modalBadgeClass || ""}`;
+    const badgeText = statusMeta?.label || "Unknown";
 
     modalBody.innerHTML = `
       <span class="${badgeClass}">${badgeText}</span>
@@ -216,6 +235,7 @@
     const query = searchInput.value.trim().toLowerCase();
     const filtered = papers.filter((paper) => {
       if (query && !searchHaystack(paper).includes(query)) return false;
+      if (activeStatuses.size > 0 && !activeStatuses.has(paper.status)) return false;
       if (activeClasses.size > 0) {
         const cls = paperMethodClass(paper);
         if (!cls || !activeClasses.has(cls)) return false;
@@ -236,6 +256,53 @@
       filtered.forEach((paper) => grid.appendChild(renderCard(paper)));
     }
     resultCount.textContent = `${filtered.length} of ${papers.length} shown`;
+  }
+
+  function renderStatusFilter() {
+    const counts = Object.fromEntries(STATUSES.map((s) => [s.value, 0]));
+    papers.forEach((paper) => {
+      if (paper.status in counts) counts[paper.status] += 1;
+    });
+
+    statusFilterRow.innerHTML = STATUSES.map((s) => {
+      const safe = escapeHtml(s.label);
+      return `<button type="button" class="chip" data-status="${s.value}" style="--chip-color:${s.color}">
+        <span class="chip__dot"></span>${safe} (${counts[s.value] || 0})
+      </button>`;
+    }).join("");
+
+    statusFilterRow.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const status = chip.getAttribute("data-status");
+        if (activeStatuses.has(status)) {
+          activeStatuses.delete(status);
+          chip.classList.remove("is-active");
+        } else {
+          activeStatuses.add(status);
+          chip.classList.add("is-active");
+        }
+        renderStatusClearButton();
+        applyFilters();
+      });
+    });
+    renderStatusClearButton();
+  }
+
+  function renderStatusClearButton() {
+    const existing = statusFilterRow.querySelector(".chip__clear");
+    if (existing) existing.remove();
+    if (activeStatuses.size === 0) return;
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "chip__clear";
+    clearBtn.textContent = "Clear status filters";
+    clearBtn.addEventListener("click", () => {
+      activeStatuses.clear();
+      statusFilterRow.querySelectorAll(".chip.is-active").forEach((c) => c.classList.remove("is-active"));
+      renderStatusClearButton();
+      applyFilters();
+    });
+    statusFilterRow.appendChild(clearBtn);
   }
 
   function renderClassFilter() {
@@ -290,6 +357,7 @@
 
   searchInput.addEventListener("input", applyFilters);
 
+  renderStatusFilter();
   renderClassFilter();
   renderGrid(papers);
 })();
