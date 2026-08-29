@@ -91,6 +91,6 @@
     "code_links": [],
     "author_statement": "Data availability statement present with shared links."
   },
-  "reproducibility_status": "PARTIALLY_REPRODUCIBLE",
+  "reproducibility_status": "NOT_REPRODUCIBLE",
   "reproducibility_assessment": "The landslide inventory and other input datasets are referenced and publicly accessible via the provided links. However, the custom PANDA methodology code is not available in the provided repository or documentation."
 }

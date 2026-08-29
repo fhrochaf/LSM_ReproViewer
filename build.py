@@ -20,7 +20,8 @@ from pathlib import Path
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent
+print(REPO_ROOT)
 REPORTS_DIR = REPO_ROOT / "output_fullPDF_with_guardrails_singlePDFread"
 METADATA_CSV = REPORTS_DIR / "analysis" / "scopus_export_Jul_22_2026_query1.csv"
 VIEWER_DIR = Path(__file__).resolve().parent
