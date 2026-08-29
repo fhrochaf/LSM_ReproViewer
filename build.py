@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import ftfy
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 
@@ -32,8 +33,24 @@ TARGET_STATUSES = ("REPRODUCIBLE", "PARTIALLY_REPRODUCIBLE")
 STATUS_SORT_RANK = {status: i for i, status in enumerate(TARGET_STATUSES)}
 
 
+def fix_mojibake(value: object) -> object:
+    """Repair mis-decoded UTF-8 text (mojibake) in the Scopus export.
+
+    Rows mix more than one mangled encoding -- plain accented letters like
+    "GanerÃ¸d" (cp1252-style) alongside curly punctuation mangled through
+    plain Latin-1 in other rows -- so a single hardcoded encode/decode
+    roundtrip doesn't cover every row. ftfy detects and reverses mojibake
+    per-string regardless of which single-byte encoding produced it, and
+    leaves already-clean text untouched.
+    """
+    if not isinstance(value, str):
+        return value
+    return ftfy.fix_text(value)
+
+
 def load_metadata() -> pd.DataFrame:
     df = pd.read_csv(METADATA_CSV, sep=";", engine="python", on_bad_lines="warn")
+    df = df.map(fix_mojibake)
     return df.set_index("EID")
 
 
