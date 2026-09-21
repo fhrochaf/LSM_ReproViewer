@@ -3,7 +3,7 @@ Visualization page for the [LSM_ReproChecker project][reprochecker].
 Catalogued over 300 machine learning, deep learning, and statistical methods
 for remote sensing mapping of landslides, based on publications from 2020 to 2025.
 
-Access the [LSM ReproViewer][reproviewer].
+Access through [LSM ReproViewer][reproviewer].
 
 
 [reprochecker]: https://github.com/fhrochaf/LSM_ReproChecker
